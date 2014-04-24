@@ -15,6 +15,7 @@ CGame::CGame ()
     if (m_bUseLogging)
         m_pLogfile->write ("textures loaded");
     loadSprite ("background");
+    loadFont ("fonts/arial.ttf", "arial");
     if (m_bUseLogging)
         m_pLogfile->write ("sprites loaded");
     m_pLevel = nullptr;
@@ -31,7 +32,13 @@ CGame::CGame ()
     m_pRotkaeppchen = nullptr;
     m_pRotkaeppchen = new CRotkaeppchen (pSprite, sf::Vector2f (100.f, 100.f));
     pSprite = nullptr;
+    m_pWinner = nullptr;
     m_uiMaxFrames = 1000;
+    m_uiElapsedTime = 0;
+    m_uiLastUpdateTime = 0;
+    m_uiNow = 0;
+    m_uiTimeLimit = 60;
+    m_uiGameStartTime = m_Clock.getElapsedTime ().asMilliseconds ();
     m_bRun = true;
 }
 
@@ -52,6 +59,7 @@ CGame::~CGame ()
         m_qpPendingEvents.pop ();
     }
     m_lpSprites.clear ();
+    m_pWinner = nullptr;
     SAFE_DELETE (m_pRotkaeppchen);
     SAFE_DELETE (m_pWolf);
     SAFE_DELETE (m_pLevel);
@@ -64,14 +72,49 @@ void CGame::run ()
 {
     while (m_bRun)
     {
-        if (m_Clock.getElapsedTime ().asMilliseconds () >= 1000 / m_uiMaxFrames)
+        m_uiNow = m_Clock.getElapsedTime ().asMilliseconds ();
+        if (m_uiNow - m_uiLastUpdateTime >= 1000 / m_uiMaxFrames)
         {
+            m_uiElapsedTime = m_uiNow - m_uiLastUpdateTime;
+            m_uiLastUpdateTime = m_uiNow;
             processWindowEvents ();
             processKeyboardEvents ();
             checkCollisions ();
+            checkGameEndConditions ();
             processGameEvents ();
             render ();
-            m_uiElapsedTime = m_Clock.restart ().asMilliseconds ();
+        }
+    }
+}
+
+void CGame::displayGameOverScreen ()
+{
+    if (m_pWinner != nullptr)
+    {
+        m_bRun = true;
+        sf::Sprite GameEndSprite (m_Textures.at ("game_end_background"), sf::IntRect (0, 0, m_pWindow->getSize ().x,
+                                                                                      m_pWindow->getSize ().y));
+        sf::Text PressEscToQuit ("press esc to quit", m_Fonts.at ("arial"), 30);
+        PressEscToQuit.setColor (sf::Color::White);
+        PressEscToQuit.setPosition (500.f, static_cast<float> (m_pWindow->getSize ().y - 200.f));
+        sf::Text Winner (m_pWinner->getName () + " has won", m_Fonts.at ("arial"), 100);
+        Winner.setColor (sf::Color::White);
+        Winner.setPosition (300.f, static_cast<float> (m_pWindow->getSize ().y - 800.f));
+        m_uiGameOverTime = m_uiNow;
+        while (m_bRun)
+        {
+            m_uiNow = m_Clock.getElapsedTime ().asMilliseconds ();
+            if (m_uiNow - m_uiLastUpdateTime >= 1000 / m_uiMaxFrames)
+            {
+                m_uiLastUpdateTime = m_uiNow;
+                if  ((sf::Keyboard::isKeyPressed (sf::Keyboard::Escape)) || (m_uiNow - m_uiGameOverTime >= 5000))
+                    m_bRun = false;
+                m_pWindow->clear ();
+                m_pWindow->draw (GameEndSprite);
+                m_pWindow->draw (Winner);
+                m_pWindow->draw (PressEscToQuit);
+                m_pWindow->display ();
+            }
         }
     }
 }
@@ -192,10 +235,6 @@ void CGame::checkCollisions ()
         m_qpPendingEvents.push (pMovement);
         pMovement = nullptr;
     }
-
-    // wolf vs rotkaeppchen
-    if (m_pRotkaeppchen->checkCollision (m_pWolf->getPos (), m_pWolf->getSize ()))
-        m_bRun = false;
 }
 
 void CGame::render ()
@@ -215,6 +254,7 @@ void CGame::loadTextures ()
     loadTexture ("textures/level_tree.bmp", "tree");
     loadTexture ("textures/creature_wolf.bmp", "wolf");
     loadTexture ("textures/creature_rotkaeppchen.bmp", "rotkaeppchen");
+    loadTexture ("textures/game_end_background.bmp", "game_end_background");
 }
 
 void CGame::loadTexture (string strPath, string strDescription)
@@ -240,4 +280,37 @@ void CGame::loadSprite (string strDescription)
     pSprite = new sf::Sprite (m_Textures.at (strDescription));
     m_lpSprites.push_back (pSprite);
     pSprite = nullptr;
+}
+
+void CGame::loadFont (string strPath, string strDescription)
+{
+    pair<string, sf::Font> font;
+    sf::Font _font;
+    if (!_font.loadFromFile (strPath))
+    {
+        if (m_bUseLogging)
+            m_pLogfile->write ("failed to load" + strPath);
+        cout << "failed to load " << strPath << endl;
+    }
+    else
+    {
+        font = make_pair (strDescription, _font);
+        m_Fonts.insert (font);
+    }
+}
+
+void CGame::checkGameEndConditions ()
+{
+    // collision wolf vs rotkaeppchen -> wolf has won
+    if (m_pRotkaeppchen->checkCollision (m_pWolf->getPos (), m_pWolf->getSize ()))
+    {
+        m_pWinner = m_pWolf;
+        m_bRun = false;
+    }
+    // time is over -> rotkaeppchen has won
+    else if (m_uiNow - m_uiGameStartTime >= m_uiTimeLimit * 1000)
+    {
+        m_pWinner = m_pRotkaeppchen;
+        m_bRun = false;
+    }
 }

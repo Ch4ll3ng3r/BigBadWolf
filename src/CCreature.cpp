@@ -66,3 +66,8 @@ bool CCreature::checkCollision (sf::Vector2f fPos, sf::Vector2i iSize)
             (fPos.x - static_cast <float> (iSize.x / 2) < m_fPos.x + static_cast<float> (m_iSize.x / 2)) &&
             (fPos.y - static_cast <float> (iSize.y / 2) < m_fPos.y + static_cast<float> (m_iSize.y / 2)));
 }
+
+string CCreature::getName ()
+{
+    return m_strName;
+}

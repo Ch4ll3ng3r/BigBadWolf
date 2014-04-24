@@ -18,6 +18,7 @@ class CCreature
         sf::Vector2i getSize ();
         sf::Vector2f getPos ();
         bool checkCollision (sf::Vector2f fPos, sf::Vector2i iSize);
+        string getName ();
 
     protected:
         string m_strName;

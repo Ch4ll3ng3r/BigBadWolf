@@ -1,6 +1,7 @@
 #ifndef GAME_HPP_INCLUDED
 #define GAME_HPP_INCLUDED
 
+#include <windows.h>
 #include <string>
 #include <iostream>
 #include <list>
@@ -13,6 +14,9 @@
 #include "SafeDelete.hpp"
 #include "CMovement.hpp"
 #include "CCollision.hpp"
+#include "Control.hpp"
+#include "CControlWolf.hpp"
+#include "CControlRotkaeppchen.hpp"
 
 class CGame
 {
@@ -28,11 +32,15 @@ class CGame
         void processGameEvents ();
         void checkCollisions ();
         void checkGameEndConditions ();
+        void updateAI ();
         void render ();
+        void initializeCreatures ();
         void loadTextures ();
         void loadTexture (string strPath, string strDescription);
         void loadFont (string strPath, string strDescription);
         void loadSprite (string strDescription);
+        void loadIniFile (string strPath);
+        string loadIniString (string strSection, string strKey, string strPath);
         sf::RenderWindow *m_pWindow;
         sf::Clock m_Clock;
         CLogfile *m_pLogfile;
@@ -44,6 +52,10 @@ class CGame
         map<string, sf::Texture> m_Textures;
         map<string, sf::Font> m_Fonts;
         queue<CEvent*> m_qpPendingEvents;
+        EControl m_ControlWolf;
+        EControl m_ControlRotkaeppchen;
+        CControlWolf *m_pControlWolf;
+        CControlRotkaeppchen *m_pControlRotkaeppchen;
         bool m_bRun;
         bool m_bUseLogging;
         unsigned int m_uiMaxFrames;

@@ -71,3 +71,8 @@ string CCreature::getName ()
 {
     return m_strName;
 }
+
+float CCreature::getDirection ()
+{
+    return m_fDirection;
+}

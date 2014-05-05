@@ -17,6 +17,7 @@ class CCreature
         void setDirection (float fDirection);
         sf::Vector2i getSize ();
         sf::Vector2f getPos ();
+        float getDirection ();
         bool checkCollision (sf::Vector2f fPos, sf::Vector2i iSize);
         string getName ();
 

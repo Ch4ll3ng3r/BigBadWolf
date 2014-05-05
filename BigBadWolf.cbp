@@ -46,6 +46,9 @@
 			<Add directory="../../../C++ Libs/SFML/lib" />
 		</Linker>
 		<Unit filename="include/CCollision.hpp" />
+		<Unit filename="include/CControlCreature.hpp" />
+		<Unit filename="include/CControlRotkaeppchen.hpp" />
+		<Unit filename="include/CControlWolf.hpp" />
 		<Unit filename="include/CCreature.hpp" />
 		<Unit filename="include/CEvent.hpp" />
 		<Unit filename="include/CGame.hpp" />
@@ -55,10 +58,14 @@
 		<Unit filename="include/CRotkaeppchen.hpp" />
 		<Unit filename="include/CTree.hpp" />
 		<Unit filename="include/CWolf.hpp" />
+		<Unit filename="include/Control.hpp" />
 		<Unit filename="include/EventType.hpp" />
 		<Unit filename="include/SafeDelete.hpp" />
 		<Unit filename="main.cpp" />
 		<Unit filename="src/CCollision.cpp" />
+		<Unit filename="src/CControlCreature.cpp" />
+		<Unit filename="src/CControlRotkaeppchen.cpp" />
+		<Unit filename="src/CControlWolf.cpp" />
 		<Unit filename="src/CCreature.cpp" />
 		<Unit filename="src/CEvent.cpp" />
 		<Unit filename="src/CGame.cpp" />

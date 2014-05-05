@@ -4,6 +4,8 @@ CGame::CGame ()
 {
     m_pWindow = nullptr;
     m_pLogfile = nullptr;
+    m_pControlRotkaeppchen = nullptr;
+    m_pControlWolf = nullptr;
     m_bUseLogging = false;
     m_pWindow = new sf::RenderWindow (sf::VideoMode::getDesktopMode (), "B1G B4D W0LF", sf::Style::Fullscreen);
     if (m_bUseLogging)
@@ -21,18 +23,12 @@ CGame::CGame ()
     m_pLevel = nullptr;
     m_pLevel = new CLevel (&m_lpSprites, m_Textures.at ("tree"), sf::Vector2i (static_cast<int> (m_pWindow->getSize ().x),
                                                                                static_cast<int> (m_pWindow->getSize ().y)));
-    sf::Sprite *pSprite = nullptr;
-    pSprite = new sf::Sprite (m_Textures.at ("wolf"));
-    m_lpSprites.push_back (pSprite);
-    m_pWolf = nullptr;
-    m_pWolf = new CWolf (pSprite, sf::Vector2f (500.f, 300.f));
-    pSprite = nullptr;
-    pSprite = new sf::Sprite (m_Textures.at ("rotkaeppchen"));
-    m_lpSprites.push_back (pSprite);
-    m_pRotkaeppchen = nullptr;
-    m_pRotkaeppchen = new CRotkaeppchen (pSprite, sf::Vector2f (100.f, 100.f));
-    pSprite = nullptr;
-    m_pWinner = nullptr;
+    initializeCreatures ();
+    if (m_ControlWolf == CPU)
+        m_pControlWolf = new CControlWolf (m_pWolf, m_pRotkaeppchen, m_pLevel);
+    if (m_ControlRotkaeppchen == CPU)
+        m_pControlRotkaeppchen = new CControlRotkaeppchen (m_pRotkaeppchen, m_pWolf, m_pLevel);
+    loadIniFile ("BidBadWolf.ini");
     m_uiMaxFrames = 1000;
     m_uiElapsedTime = 0;
     m_uiLastUpdateTime = 0;
@@ -60,6 +56,10 @@ CGame::~CGame ()
     }
     m_lpSprites.clear ();
     m_pWinner = nullptr;
+    if (m_ControlWolf == CPU)
+        SAFE_DELETE (m_pControlWolf);
+    if (m_ControlRotkaeppchen == CPU)
+        SAFE_DELETE (m_pControlRotkaeppchen);
     SAFE_DELETE (m_pRotkaeppchen);
     SAFE_DELETE (m_pWolf);
     SAFE_DELETE (m_pLevel);
@@ -79,6 +79,7 @@ void CGame::run ()
             m_uiLastUpdateTime = m_uiNow;
             processWindowEvents ();
             processKeyboardEvents ();
+            updateAI ();
             checkCollisions ();
             checkGameEndConditions ();
             processGameEvents ();
@@ -96,10 +97,11 @@ void CGame::displayGameOverScreen ()
                                                                                       m_pWindow->getSize ().y));
         sf::Text PressEscToQuit ("press esc to quit", m_Fonts.at ("arial"), 30);
         PressEscToQuit.setColor (sf::Color::White);
-        PressEscToQuit.setPosition (500.f, static_cast<float> (m_pWindow->getSize ().y - 200.f));
+        PressEscToQuit.setPosition (static_cast<float> (m_pWindow->getSize ().x / 10 * 4),
+                                    static_cast<float> (m_pWindow->getSize ().y / 5 * 4));
         sf::Text Winner (m_pWinner->getName () + " has won", m_Fonts.at ("arial"), 100);
         Winner.setColor (sf::Color::White);
-        Winner.setPosition (300.f, static_cast<float> (m_pWindow->getSize ().y - 800.f));
+        Winner.setPosition (static_cast<float> (m_pWindow->getSize ().x / 3), static_cast<float> (m_pWindow->getSize ().y / 3));
         m_uiGameOverTime = m_uiNow;
         while (m_bRun)
         {
@@ -126,47 +128,53 @@ void CGame::processKeyboardEvents ()
         m_bRun = false;
 
     // moving wolf
-    if (sf::Keyboard::isKeyPressed (sf::Keyboard::Up))
+    if (m_ControlWolf == PLAYER)
     {
-        m_pWolf->setDirection (0.f);
-        m_pWolf->move (m_uiElapsedTime);
-    }
-    else if (sf::Keyboard::isKeyPressed (sf::Keyboard::Right))
-    {
-        m_pWolf->setDirection (90.f);
-        m_pWolf->move (m_uiElapsedTime);
-    }
-    else if (sf::Keyboard::isKeyPressed (sf::Keyboard::Down))
-    {
-        m_pWolf->setDirection (180.f);
-        m_pWolf->move (m_uiElapsedTime);
-    }
-    else if (sf::Keyboard::isKeyPressed (sf::Keyboard::Left))
-    {
-        m_pWolf->setDirection (270.f);
-        m_pWolf->move (m_uiElapsedTime);
+        if (sf::Keyboard::isKeyPressed (sf::Keyboard::Up))
+        {
+            m_pWolf->setDirection (0.f);
+            m_pWolf->move (m_uiElapsedTime);
+        }
+        else if (sf::Keyboard::isKeyPressed (sf::Keyboard::Right))
+        {
+            m_pWolf->setDirection (90.f);
+            m_pWolf->move (m_uiElapsedTime);
+        }
+        else if (sf::Keyboard::isKeyPressed (sf::Keyboard::Down))
+        {
+            m_pWolf->setDirection (180.f);
+            m_pWolf->move (m_uiElapsedTime);
+        }
+        else if (sf::Keyboard::isKeyPressed (sf::Keyboard::Left))
+        {
+            m_pWolf->setDirection (270.f);
+            m_pWolf->move (m_uiElapsedTime);
+        }
     }
 
     // moving rotkaeppchen
-    if (sf::Keyboard::isKeyPressed (sf::Keyboard::I))
+    if (m_ControlRotkaeppchen == PLAYER)
     {
-        m_pRotkaeppchen->setDirection (0.f);
-        m_pRotkaeppchen->move (m_uiElapsedTime);
-    }
-    else if (sf::Keyboard::isKeyPressed (sf::Keyboard::L))
-    {
-        m_pRotkaeppchen->setDirection (90.f);
-        m_pRotkaeppchen->move (m_uiElapsedTime);
-    }
-    else if (sf::Keyboard::isKeyPressed (sf::Keyboard::K))
-    {
-        m_pRotkaeppchen->setDirection (180.f);
-        m_pRotkaeppchen->move (m_uiElapsedTime);
-    }
-    else if (sf::Keyboard::isKeyPressed (sf::Keyboard::J))
-    {
-        m_pRotkaeppchen->setDirection (270.f);
-        m_pRotkaeppchen->move (m_uiElapsedTime);
+        if (sf::Keyboard::isKeyPressed (sf::Keyboard::I))
+        {
+            m_pRotkaeppchen->setDirection (0.f);
+            m_pRotkaeppchen->move (m_uiElapsedTime);
+        }
+        else if (sf::Keyboard::isKeyPressed (sf::Keyboard::L))
+        {
+            m_pRotkaeppchen->setDirection (90.f);
+            m_pRotkaeppchen->move (m_uiElapsedTime);
+        }
+        else if (sf::Keyboard::isKeyPressed (sf::Keyboard::K))
+        {
+            m_pRotkaeppchen->setDirection (180.f);
+            m_pRotkaeppchen->move (m_uiElapsedTime);
+        }
+        else if (sf::Keyboard::isKeyPressed (sf::Keyboard::J))
+        {
+            m_pRotkaeppchen->setDirection (270.f);
+            m_pRotkaeppchen->move (m_uiElapsedTime);
+        }
     }
 }
 
@@ -313,4 +321,63 @@ void CGame::checkGameEndConditions ()
         m_pWinner = m_pRotkaeppchen;
         m_bRun = false;
     }
+}
+
+string CGame::loadIniString (string strSection, string strKey, string strPath)
+{
+    char acString[256];
+    GetPrivateProfileString (strSection.c_str (), strKey.c_str (), "not found", acString, 256, strPath.c_str());
+    return acString;
+}
+
+void CGame::loadIniFile (string strPath)
+{
+    cout << "Resolution: " << loadIniString ("Video Settings", "Resolution", strPath) << endl;
+}
+
+void CGame::initializeCreatures ()
+{
+    bool m_bPosSafe = false;
+    sf::Vector2f fPos;
+    sf::Vector2i iSize = sf::Vector2i (30, 30);
+
+    // wolf
+    while (!m_bPosSafe)
+    {
+        fPos = sf::Vector2f (static_cast<float> (rand () % (m_pWindow->getSize ().x + 1)),
+                             static_cast<float> (rand () % (m_pWindow->getSize ().y + 1)));
+        m_bPosSafe = !m_pLevel->checkCollision (fPos, iSize);
+
+    }
+    sf::Sprite *pSprite = nullptr;
+    pSprite = new sf::Sprite (m_Textures.at ("wolf"));
+    m_lpSprites.push_back (pSprite);
+    m_pWolf = nullptr;
+    m_pWolf = new CWolf (pSprite, fPos);
+    m_ControlWolf = PLAYER;
+    pSprite = nullptr;
+    m_bPosSafe = false;
+
+    // rotkaeppchen
+    while (!m_bPosSafe)
+    {
+        fPos = sf::Vector2f (static_cast<float> (rand () % (m_pWindow->getSize ().x + 1)),
+                             static_cast<float> (rand () % (m_pWindow->getSize ().y + 1)));
+        m_bPosSafe = !((m_pLevel->checkCollision (fPos, iSize)) || (m_pWolf->checkCollision (fPos, iSize)));
+    }
+    pSprite = new sf::Sprite (m_Textures.at ("rotkaeppchen"));
+    m_lpSprites.push_back (pSprite);
+    m_pRotkaeppchen = nullptr;
+    m_pRotkaeppchen = new CRotkaeppchen (pSprite, fPos);
+    m_ControlRotkaeppchen = CPU;
+    pSprite = nullptr;
+    m_pWinner = nullptr;
+}
+
+void CGame::updateAI ()
+{
+    if (m_ControlWolf == CPU)
+        m_pControlWolf->update (m_uiElapsedTime);
+    if (m_ControlRotkaeppchen == CPU)
+        m_pControlRotkaeppchen->update (m_uiElapsedTime);
 }

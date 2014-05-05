@@ -2,7 +2,8 @@
 1398337054 source:f:\codeblocks\projects\bigbadwolf\main.cpp
 	"include/CGame.hpp"
 
-1398362237 f:\codeblocks\projects\bigbadwolf\include\cgame.hpp
+1399118405 f:\codeblocks\projects\bigbadwolf\include\cgame.hpp
+	<windows.h>
 	<string>
 	<iostream>
 	<list>
@@ -15,6 +16,9 @@
 	"SafeDelete.hpp"
 	"CMovement.hpp"
 	"CCollision.hpp"
+	"Control.hpp"
+	"CControlWolf.hpp"
+	"CControlRotkaeppchen.hpp"
 
 1398167271 f:\codeblocks\projects\bigbadwolf\include\clevel.hpp
 	"CTree.hpp"
@@ -367,7 +371,7 @@
 	<iostream>
 	<fstream>
 
-1398362311 source:f:\codeblocks\projects\bigbadwolf\src\cgame.cpp
+1399309689 source:f:\codeblocks\projects\bigbadwolf\src\cgame.cpp
 	"../include/CGame.hpp"
 
 1398167685 source:f:\codeblocks\projects\bigbadwolf\src\clevel.cpp
@@ -379,10 +383,10 @@
 1398170733 source:f:\codeblocks\projects\bigbadwolf\src\ctree.cpp
 	"../include/CTree.hpp"
 
-1398337231 source:f:\codeblocks\projects\bigbadwolf\src\ccreature.cpp
+1399204635 source:f:\codeblocks\projects\bigbadwolf\src\ccreature.cpp
 	"../include/CCreature.hpp"
 
-1398337210 f:\codeblocks\projects\bigbadwolf\include\ccreature.hpp
+1399204642 f:\codeblocks\projects\bigbadwolf\include\ccreature.hpp
 	<string>
 	<SFML/Graphics.hpp>
 
@@ -418,4 +422,28 @@
 
 1398075056 source:f:\codeblocks\projects\bigbadwolf\src\cmovement.cpp
 	"../include/CMovement.hpp"
+
+1399116553 f:\codeblocks\projects\bigbadwolf\include\control.hpp
+
+1399203821 f:\codeblocks\projects\bigbadwolf\include\ccontrolwolf.hpp
+	"CControlCreature.hpp"
+
+1399205059 f:\codeblocks\projects\bigbadwolf\include\ccontrolcreature.hpp
+	"CCreature.hpp"
+	"CLevel.hpp"
+	"CWolf.hpp"
+	"CRotkaeppchen.hpp"
+	<cmath>
+
+1399203837 f:\codeblocks\projects\bigbadwolf\include\ccontrolrotkaeppchen.hpp
+	"CControlCreature.hpp"
+
+1399205267 source:f:\codeblocks\projects\bigbadwolf\src\ccontrolrotkaeppchen.cpp
+	"../include/CControlRotkaeppchen.hpp"
+
+1399205353 source:f:\codeblocks\projects\bigbadwolf\src\ccontrolwolf.cpp
+	"../include/CControlWolf.hpp"
+
+1399309448 source:f:\codeblocks\projects\bigbadwolf\src\ccontrolcreature.cpp
+	"../include/CControlCreature.hpp"
 

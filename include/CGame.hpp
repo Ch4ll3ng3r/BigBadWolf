@@ -41,8 +41,11 @@ class CGame
         void loadSprite (string strDescription);
         void loadIniFile (string strPath);
         string loadIniString (string strSection, string strKey, string strPath);
+        int loadIniInt (string strSection, string strKey, string strPath);
+        bool loadIniBool (string strSection, string strKey, string strPath);
         sf::RenderWindow *m_pWindow;
         sf::Clock m_Clock;
+        sf::Vector2u m_uiResolution;
         CLogfile *m_pLogfile;
         CLevel *m_pLevel;
         CWolf *m_pWolf;
@@ -58,6 +61,7 @@ class CGame
         CControlRotkaeppchen *m_pControlRotkaeppchen;
         bool m_bRun;
         bool m_bUseLogging;
+        bool m_bFullscreen;
         unsigned int m_uiMaxFrames;
         unsigned int m_uiElapsedTime;
         unsigned int m_uiNow;

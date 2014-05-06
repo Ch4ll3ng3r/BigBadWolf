@@ -2,12 +2,15 @@
 
 CGame::CGame ()
 {
+    loadIniFile (".\\BigBadWolf.ini");
     m_pWindow = nullptr;
     m_pLogfile = nullptr;
     m_pControlRotkaeppchen = nullptr;
     m_pControlWolf = nullptr;
-    m_bUseLogging = false;
-    m_pWindow = new sf::RenderWindow (sf::VideoMode::getDesktopMode (), "B1G B4D W0LF", sf::Style::Fullscreen);
+    if (m_bFullscreen)
+        m_pWindow = new sf::RenderWindow (sf::VideoMode (m_uiResolution.x, m_uiResolution.y), "BIG BAD WOLF", sf::Style::Fullscreen);
+    else
+        m_pWindow = new sf::RenderWindow (sf::VideoMode (m_uiResolution.x, m_uiResolution.y), "BIG BAD WOLF");
     if (m_bUseLogging)
         m_pLogfile = new CLogfile ("log");
     cout << "starting game..." << endl;
@@ -28,12 +31,9 @@ CGame::CGame ()
         m_pControlWolf = new CControlWolf (m_pWolf, m_pRotkaeppchen, m_pLevel);
     if (m_ControlRotkaeppchen == CPU)
         m_pControlRotkaeppchen = new CControlRotkaeppchen (m_pRotkaeppchen, m_pWolf, m_pLevel);
-    loadIniFile ("BidBadWolf.ini");
-    m_uiMaxFrames = 1000;
     m_uiElapsedTime = 0;
     m_uiLastUpdateTime = 0;
     m_uiNow = 0;
-    m_uiTimeLimit = 60;
     m_uiGameStartTime = m_Clock.getElapsedTime ().asMilliseconds ();
     m_bRun = true;
 }
@@ -101,7 +101,8 @@ void CGame::displayGameOverScreen ()
                                     static_cast<float> (m_pWindow->getSize ().y / 5 * 4));
         sf::Text Winner (m_pWinner->getName () + " has won", m_Fonts.at ("arial"), 100);
         Winner.setColor (sf::Color::White);
-        Winner.setPosition (static_cast<float> (m_pWindow->getSize ().x / 3), static_cast<float> (m_pWindow->getSize ().y / 3));
+        Winner.setPosition (static_cast<float> (m_pWindow->getSize ().x / 4),
+                            static_cast<float> (m_pWindow->getSize ().y / 3));
         m_uiGameOverTime = m_uiNow;
         while (m_bRun)
         {
@@ -326,13 +327,40 @@ void CGame::checkGameEndConditions ()
 string CGame::loadIniString (string strSection, string strKey, string strPath)
 {
     char acString[256];
-    GetPrivateProfileString (strSection.c_str (), strKey.c_str (), "not found", acString, 256, strPath.c_str());
+    GetPrivateProfileString (strSection.c_str (), strKey.c_str (), "not found", acString, sizeof (acString), strPath.c_str());
     return acString;
+}
+
+int CGame::loadIniInt (string strSection, string strKey, string strPath)
+{
+    return GetPrivateProfileInt (strSection.c_str (), strKey.c_str (), -1, strPath.c_str ());
+}
+
+bool CGame::loadIniBool (string strSection, string strKey, string strPath)
+{
+    return loadIniInt (strSection, strKey, strPath) != 0;
 }
 
 void CGame::loadIniFile (string strPath)
 {
-    cout << "Resolution: " << loadIniString ("Video Settings", "Resolution", strPath) << endl;
+    m_uiMaxFrames = static_cast<unsigned int> (loadIniInt ("Video Settings", "MaxFrames", strPath));
+    m_uiTimeLimit = static_cast<unsigned int> (loadIniInt ("Gameplay", "TimeLimit", strPath));
+    m_bFullscreen = loadIniBool ("Video Settings", "Fullscreen", strPath);
+    m_bUseLogging = loadIniBool ("Debugging", "UseLogging", strPath);
+    m_uiResolution.x = static_cast<unsigned int> (loadIniInt ("Video Settings", "Width", strPath));
+    m_uiResolution.y = static_cast<unsigned int> (loadIniInt ("Video Settings", "Height", strPath));
+    if (loadIniString ("Gameplay", "ControlsWolf", strPath) == "Player")
+        m_ControlWolf = PLAYER;
+    else if (loadIniString ("Gameplay", "ControlsWolf", strPath) == "CPU")
+        m_ControlWolf = CPU;
+    else
+        m_ControlWolf = NONE;
+    if (loadIniString ("Gameplay", "ControlsRotkaeppchen", strPath) == "Player")
+        m_ControlRotkaeppchen = PLAYER;
+    else if (loadIniString ("Gameplay", "ControlsRotkaeppchen", strPath) == "CPU")
+        m_ControlRotkaeppchen = CPU;
+    else
+        m_ControlRotkaeppchen = NONE;
 }
 
 void CGame::initializeCreatures ()
@@ -354,7 +382,6 @@ void CGame::initializeCreatures ()
     m_lpSprites.push_back (pSprite);
     m_pWolf = nullptr;
     m_pWolf = new CWolf (pSprite, fPos);
-    m_ControlWolf = PLAYER;
     pSprite = nullptr;
     m_bPosSafe = false;
 
@@ -367,9 +394,7 @@ void CGame::initializeCreatures ()
     }
     pSprite = new sf::Sprite (m_Textures.at ("rotkaeppchen"));
     m_lpSprites.push_back (pSprite);
-    m_pRotkaeppchen = nullptr;
     m_pRotkaeppchen = new CRotkaeppchen (pSprite, fPos);
-    m_ControlRotkaeppchen = CPU;
     pSprite = nullptr;
     m_pWinner = nullptr;
 }

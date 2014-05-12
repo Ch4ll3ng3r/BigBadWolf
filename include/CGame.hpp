@@ -43,6 +43,7 @@ class CGame
         string loadIniString (string strSection, string strKey, string strPath);
         int loadIniInt (string strSection, string strKey, string strPath);
         bool loadIniBool (string strSection, string strKey, string strPath);
+        float getDistance (sf::Vector2f fPos1, sf::Vector2f fPos2);
         sf::RenderWindow *m_pWindow;
         sf::Clock m_Clock;
         sf::Vector2u m_uiResolution;
@@ -69,6 +70,7 @@ class CGame
         unsigned int m_uiGameOverTime;
         unsigned int m_uiTimeLimit; // in seconds
         unsigned int m_uiGameStartTime;
+        unsigned int m_uiMinDistance;
 };
 
 #endif // GAME_HPP_INCLUDED

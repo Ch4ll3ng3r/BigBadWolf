@@ -392,15 +392,12 @@ void CGame::initializeCreatures ()
         fPos = sf::Vector2f (static_cast<float> (rand () % (m_pWindow->getSize ().x + 1)),
                              static_cast<float> (rand () % (m_pWindow->getSize ().y + 1)));
         m_bPosSafe = !((m_pLevel->checkCollision (fPos, iSize)) ||
-                       (m_pWolf->checkCollision (fPos, iSize)) ||
                        (static_cast<unsigned int> (getDistance (fPos, m_pWolf->getPos ())) < m_uiMinDistance));
     }
     pSprite = new sf::Sprite (m_Textures.at ("rotkaeppchen"));
     m_lpSprites.push_back (pSprite);
     m_pRotkaeppchen = new CRotkaeppchen (pSprite, fPos);
     pSprite = nullptr;
-    m_pWinner = nullptr;
-    cout << getDistance (m_pWolf->getPos (), m_pRotkaeppchen->getPos ()) << endl;
 }
 
 void CGame::updateAI ()
@@ -413,7 +410,5 @@ void CGame::updateAI ()
 
 float CGame::getDistance (sf::Vector2f fPos1, sf::Vector2f fPos2)
 {
-    cout << fPos1.x - fPos2.x << endl;
-    cout << fPos1.y - fPos2.y << endl;
     return fabs (sqrt (pow (fPos1.x - fPos2.x, 2) + (pow (fPos1.y - fPos2.y, 2))));
 }
